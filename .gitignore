@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+target/
+*.jar
+*.war
+.DS_Store
+.idea/
+*.iml
+.vscode/
