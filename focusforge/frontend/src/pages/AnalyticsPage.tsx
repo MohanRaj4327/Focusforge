@@ -19,34 +19,8 @@ export const AnalyticsPage: React.FC = () => {
   useEffect(() => {
     analyticsApi.getDashboardAnalytics()
       .then(setData)
-      .catch(() => {
-        setData({
-          weeklyFocusTrend: [
-            { day: 'Mon', focusMinutes: 210, targetMinutes: 240 },
-            { day: 'Tue', focusMinutes: 260, targetMinutes: 240 },
-            { day: 'Wed', focusMinutes: 180, targetMinutes: 240 },
-            { day: 'Thu', focusMinutes: 300, targetMinutes: 240 },
-            { day: 'Fri', focusMinutes: 240, targetMinutes: 240 },
-            { day: 'Sat', focusMinutes: 320, targetMinutes: 240 },
-            { day: 'Sun', focusMinutes: 280, targetMinutes: 240 }
-          ],
-          dsaTopicBreakdown: [
-            { topicName: 'Arrays', totalProblems: 24, solvedProblems: 18, percentage: 75 },
-            { topicName: 'Sorting', totalProblems: 10, solvedProblems: 8, percentage: 80 },
-            { topicName: 'Binary Search', totalProblems: 11, solvedProblems: 5, percentage: 45 },
-            { topicName: 'Strings', totalProblems: 19, solvedProblems: 7, percentage: 36 },
-            { topicName: 'Linked List', totalProblems: 15, solvedProblems: 4, percentage: 26 }
-          ],
-          aptitudeBreakdown: [
-            { category: 'Quantitative', averageScorePercentage: 87, sessionsTaken: 12 },
-            { category: 'Logical Reasoning', averageScorePercentage: 92, sessionsTaken: 10 },
-            { category: 'Verbal Ability', averageScorePercentage: 80, sessionsTaken: 8 }
-          ],
-          totalFocusHours: 45,
-          totalDsaSolved: 42,
-          averageAptitudeScore: 86,
-          studyStreakDays: 5
-        });
+      .catch((error) => {
+        console.error("Failed to load analytics:", error);
       });
   }, []);
 
