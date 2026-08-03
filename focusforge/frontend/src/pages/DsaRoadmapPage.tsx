@@ -36,18 +36,8 @@ export const DsaRoadmapPage: React.FC = () => {
       setProblems(problemsData);
       setSummary(summaryData);
     } catch (err) {
-      // Fallback demo data if backend server is starting up
-      setSummary({
-        totalProblems: 175,
-        solvedProblems: 42,
-        remainingProblems: 133,
-        progressPercentage: 24,
-        currentMonth: 1,
-        currentTopic: 'Arrays',
-        expectedProblems: 45,
-        problemsBehind: 3,
-        status: 'BEHIND'
-      });
+      console.error("Failed to load DSA Roadmap data:", err);
+      // Let it fail gracefully or show an error state
     } finally {
       setLoading(false);
     }

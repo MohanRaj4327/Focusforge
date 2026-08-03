@@ -56,20 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('focusforge_jwt', res.token);
       localStorage.setItem('focusforge_user', JSON.stringify(res.user));
     } catch (error) {
-      // Fallback for live UI preview when backend server is offline
-      const mockUser: User = {
-        id: 1,
-        username: usernameOrEmail.split('@')[0],
-        email: usernameOrEmail.includes('@') ? usernameOrEmail : `${usernameOrEmail}@focusforge.dev`,
-        fullName: 'Mohan Raj',
-        targetCompany: 'Zoho',
-        dailyFocusGoalMinutes: 240,
-        targetDsaPerDay: 3
-      };
-      setToken('demo_jwt_token_123');
-      setUser(mockUser);
-      localStorage.setItem('focusforge_jwt', 'demo_jwt_token_123');
-      localStorage.setItem('focusforge_user', JSON.stringify(mockUser));
+      console.error("Login failed:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -84,19 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('focusforge_jwt', res.token);
       localStorage.setItem('focusforge_user', JSON.stringify(res.user));
     } catch (error) {
-      const mockUser: User = {
-        id: 1,
-        username: data.username,
-        email: data.email,
-        fullName: data.fullName || data.username,
-        targetCompany: data.targetCompany || 'Zoho',
-        dailyFocusGoalMinutes: 240,
-        targetDsaPerDay: 3
-      };
-      setToken('demo_jwt_token_123');
-      setUser(mockUser);
-      localStorage.setItem('focusforge_jwt', 'demo_jwt_token_123');
-      localStorage.setItem('focusforge_user', JSON.stringify(mockUser));
+      console.error("Registration failed:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -24,48 +24,9 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     dashboardApi.getTodayDashboard()
       .then((data) => setDashboard(data))
-      .catch(() => {
-        // Fallback default state for demo preview
-        setDashboard({
-          currentFocus: { title: 'DSA Revision & Arrays', startTime: '17:00', endTime: '18:30', activityType: 'DSA' },
-          nextTask: { title: 'Aptitude Practice - Averages', startTime: '18:30', endTime: '19:30', category: 'APTITUDE' },
-          todayProgress: 80,
-          completedTasks: 8,
-          totalTasks: 10,
-          focusMinutes: 260,
-          dsaSummary: {
-            totalProblems: 175,
-            solvedProblems: 42,
-            remainingProblems: 133,
-            progressPercentage: 24,
-            currentMonth: 1,
-            currentTopic: 'Arrays, Sorting',
-            expectedProblems: 45,
-            problemsBehind: 3,
-            status: 'BEHIND'
-          },
-          revisionTasks: [
-            { id: 1, problemId: 19, problemTitle: 'Trapping Rain Water', topicName: 'Arrays', difficulty: 'HARD', revisionStage: 2, scheduledDate: '2026-08-02', isCompleted: false },
-            { id: 2, problemId: 4, problemTitle: 'Reverse a String In-Place', topicName: 'Strings', difficulty: 'EASY', revisionStage: 1, scheduledDate: '2026-08-02', isCompleted: false }
-          ],
-          upcomingDeadlines: [
-            { id: 1, title: 'Zoho Mock Test Round 2', dueDate: '2026-08-10', priority: 'HIGH', category: 'PLACEMENT' }
-          ],
-          awarenessMessages: [
-            "Opening your editor and solving 1 problem today is the actual work. Track it daily!",
-            "Every problem added does not break your timeline. What breaks your timeline is not solving daily.",
-            "Trees, BST, Pattern Printing, and Hashing are non-negotiable Zoho Round 2 territory."
-          ],
-          studyStats: {
-            currentStreakDays: 5,
-            longestStreakDays: 14,
-            dailyFocusMinutes: 260,
-            weeklyFocusMinutes: 1240,
-            monthlyFocusMinutes: 4460,
-            totalProblemsSolved: 42,
-            overallProductivityScore: 88
-          }
-        });
+      .catch((error) => {
+        console.error("Failed to load dashboard:", error);
+        // We could set an error state here, but for now just leave dashboard null or handle it in the UI
       })
       .finally(() => setLoading(false));
   }, []);
