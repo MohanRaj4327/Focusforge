@@ -63,7 +63,7 @@ export const DeadlinesPage: React.FC = () => {
           className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none"
         />
         <input
-          type="datetime-local"
+          type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
           className="px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
