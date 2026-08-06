@@ -13,6 +13,9 @@ import { FocusTimerPage } from './pages/FocusTimerPage';
 import { DeadlinesPage } from './pages/DeadlinesPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AptitudeZohoPage } from './pages/AptitudeZohoPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { OAuth2RedirectHandler } from './pages/OAuth2RedirectHandler';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -29,6 +32,9 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
           <Route
             path="/"
