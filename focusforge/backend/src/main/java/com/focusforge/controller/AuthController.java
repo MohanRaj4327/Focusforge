@@ -32,4 +32,16 @@ public class AuthController {
     public ResponseEntity<AuthDTO.UserDTO> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.ok(authService.getCurrentUserProfile(currentUser.getId()));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        authService.processForgotPassword(request.get("email"));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody java.util.Map<String, String> request) {
+        authService.processResetPassword(request.get("token"), request.get("newPassword"));
+        return ResponseEntity.ok().build();
+    }
 }

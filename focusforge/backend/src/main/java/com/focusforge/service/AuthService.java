@@ -23,13 +23,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final com.focusforge.repository.PasswordResetTokenRepository tokenRepository;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, ProfileRepository profileRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider) {
+    public AuthService(UserRepository userRepository, ProfileRepository profileRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, com.focusforge.repository.PasswordResetTokenRepository tokenRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
+        this.tokenRepository = tokenRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -112,5 +116,46 @@ public class AuthService {
                 .dailyFocusGoalMinutes(profile != null ? profile.getDailyFocusGoalMinutes() : 240)
                 .targetDsaPerDay(profile != null ? profile.getTargetDsaPerDay() : 3)
                 .build();
+    }
+
+    @Transactional
+    public void processForgotPassword(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            // Ignore for security to prevent email enumeration
+            return;
+        }
+
+        // Generate token
+        String token = java.util.UUID.randomUUID().toString();
+        
+        // Save token to DB
+        tokenRepository.deleteByUserId(user.getId());
+        com.focusforge.entity.PasswordResetToken resetToken = com.focusforge.entity.PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(java.time.LocalDateTime.now().plusMinutes(15))
+                .build();
+        tokenRepository.save(resetToken);
+
+        // Send Email
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+    }
+
+    @Transactional
+    public void processResetPassword(String token, String newPassword) {
+        com.focusforge.entity.PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new BadRequestException("Invalid or expired token"));
+
+        if (resetToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
+            tokenRepository.delete(resetToken);
+            throw new BadRequestException("Token has expired");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        tokenRepository.delete(resetToken);
     }
 }
