@@ -63,6 +63,8 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getAuthProvider() { return authProvider; }
+    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
 
     public static UserBuilder builder() { return new UserBuilder(); }
 
@@ -72,6 +74,7 @@ public class User {
         private String email;
         private String password;
         private String role = "ROLE_USER";
+        private String authProvider = "LOCAL";
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -80,11 +83,14 @@ public class User {
         public UserBuilder email(String email) { this.email = email; return this; }
         public UserBuilder password(String password) { this.password = password; return this; }
         public UserBuilder role(String role) { this.role = role; return this; }
+        public UserBuilder authProvider(String authProvider) { this.authProvider = authProvider; return this; }
         public UserBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public UserBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public User build() {
-            return new User(id, username, email, password, role, createdAt, updatedAt);
+            User user = new User(id, username, email, password, role, createdAt, updatedAt);
+            user.setAuthProvider(authProvider);
+            return user;
         }
     }
 }
