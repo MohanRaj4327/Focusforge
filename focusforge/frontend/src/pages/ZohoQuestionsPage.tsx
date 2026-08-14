@@ -3,6 +3,7 @@ import { ZOHO_QUESTIONS } from '../data/zohoQuestionsData';
 import { Building2, Search, Filter, BookOpen, CheckCircle, MapPin, Flame } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useZohoProgress } from '../hooks/useZohoProgress';
+import { useMotivation } from '../hooks/useMotivation';
 import confetti from 'canvas-confetti';
 
 export const ZohoQuestionsPage: React.FC = () => {
@@ -10,10 +11,12 @@ export const ZohoQuestionsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   const { progress, markAsSolved, isSolved } = useZohoProgress();
+  const { triggerMotivation } = useMotivation();
 
   const handleSolve = (id: string) => {
     const result = markAsSolved(id);
     if (result) {
+      triggerMotivation();
       // Fire confetti
       confetti({
         particleCount: 100,

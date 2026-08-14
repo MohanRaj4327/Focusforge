@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { focusApi } from '../api/focusApi';
 import { FocusStatistics } from '../types';
 import { Play, Pause, RotateCcw, Clock, CheckCircle2, Flame } from 'lucide-react';
+import { useMotivation } from '../hooks/useMotivation';
 
 export const FocusTimerPage: React.FC = () => {
+  const { triggerMotivation } = useMotivation();
   const [mode, setMode] = useState<'POMODORO' | 'SHORT_BREAK' | 'LONG_BREAK'>('POMODORO');
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -33,7 +35,7 @@ export const FocusTimerPage: React.FC = () => {
       if (sessionId) {
         focusApi.completeSession(sessionId).catch(() => {});
       }
-      alert('Focus session completed! Great job.');
+      triggerMotivation();
     }
     return () => clearInterval(interval);
   }, [isActive, timeLeft, sessionId]);

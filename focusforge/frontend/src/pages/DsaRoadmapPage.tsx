@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useStreak } from '../hooks/useStreak';
+import { useMotivation } from '../hooks/useMotivation';
 
 export const DsaRoadmapPage: React.FC = () => {
   const [topics, setTopics] = useState<DsaTopic[]>([]);
@@ -28,6 +29,7 @@ export const DsaRoadmapPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   
   const { streak, markActiveToday } = useStreak('dsa');
+  const { triggerMotivation } = useMotivation();
 
   const fetchRoadmapData = async () => {
     setLoading(true);
@@ -69,6 +71,7 @@ export const DsaRoadmapPage: React.FC = () => {
       await dsaApi.solveProblem(id);
       
       const result = markActiveToday();
+      triggerMotivation();
       
       confetti({
         particleCount: 100,
