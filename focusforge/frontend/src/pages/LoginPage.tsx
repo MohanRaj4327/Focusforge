@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, Lock, Mail, AlertCircle, CheckCircle } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
   const { login, isLoading, signInWithGoogle, signInWithGithub } = useAuth();
   const navigate = useNavigate();
 
@@ -15,7 +17,17 @@ export const LoginPage: React.FC = () => {
     setError('');
     try {
       await login(email, password);
-      navigate('/');
+      setIsSuccess(true);
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#4f46e5', '#9333ea', '#ec4899']
+      });
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 1200);
     } catch (err: any) {
       const clerkError = err?.errors?.[0]?.message;
       setError(clerkError || 'Invalid email or password. Please try again.');
@@ -122,11 +134,20 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-purple-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={isLoading || isSuccess}
+            className={`w-full py-3 text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-80 ${
+              isSuccess 
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                : 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-purple-500'
+            }`}
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isSuccess ? (
+              <>
+                <CheckCircle className="w-4 h-4" /> 
+                <span className="animate-pulse">Access Granted</span>
+              </>
             ) : (
               <>Sign In <ArrowRight className="w-4 h-4" /></>
             )}

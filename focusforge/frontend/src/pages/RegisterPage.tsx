@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles, ArrowRight, User, Mail, Lock, Building, AlertCircle, CheckCircle } from 'lucide-react';
 import { useSignUp } from '@clerk/clerk-react';
+import confetti from 'canvas-confetti';
 
 export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export const RegisterPage: React.FC = () => {
   const [error, setError] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerification, setShowVerification] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { register, isLoading, signInWithGoogle, signInWithGithub } = useAuth();
   const { signUp, setActive, isLoaded } = useSignUp();
   const navigate = useNavigate();
@@ -40,7 +42,17 @@ export const RegisterPage: React.FC = () => {
       const result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
       if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        navigate('/');
+        setIsSuccess(true);
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.6 },
+          colors: ['#4f46e5', '#9333ea', '#ec4899', '#10b981']
+        });
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       }
     } catch (err: any) {
       const clerkError = err?.errors?.[0]?.message;
@@ -214,11 +226,20 @@ export const RegisterPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-purple-500 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+            disabled={isLoading || isSuccess}
+            className={`w-full py-3 text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-80 ${
+              isSuccess 
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                : 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-purple-500'
+            }`}
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isSuccess ? (
+              <>
+                <CheckCircle className="w-4 h-4" /> 
+                <span className="animate-pulse">Account Created</span>
+              </>
             ) : (
               <>Create Account <ArrowRight className="w-4 h-4" /></>
             )}
