@@ -27,11 +27,23 @@ export const DsaRoadmapPage: React.FC = () => {
   const fetchRoadmapData = async () => {
     setLoading(true);
     try {
-      const [topicsData, problemsData, summaryData] = await Promise.all([
+      let [topicsData, problemsData, summaryData] = await Promise.all([
         dsaApi.getTopics(),
         dsaApi.getProblems(selectedTopicId || undefined, selectedMonth || undefined),
         dsaApi.getSummary()
       ]);
+
+      // If database is completely empty for this user, seed it from the 175-problem list
+      if (problemsData.length === 0 && !selectedMonth && !selectedTopicId) {
+        await dsaApi.initializeUserRoadmap();
+        // Re-fetch after seeding
+        [topicsData, problemsData, summaryData] = await Promise.all([
+          dsaApi.getTopics(),
+          dsaApi.getProblems(selectedTopicId || undefined, selectedMonth || undefined),
+          dsaApi.getSummary()
+        ]);
+      }
+
       setTopics(topicsData);
       setProblems(problemsData);
       setSummary(summaryData);

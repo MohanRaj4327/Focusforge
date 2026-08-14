@@ -304,4 +304,63 @@ export const dsaApi = {
       
     if (error) throw error;
   },
+
+  initializeUserRoadmap: async (): Promise<void> => {
+    const userId = getCurrentUserId();
+    
+    // Dynamically import data to avoid loading it on every page
+    const { ROADMAP_TOPICS, ROADMAP_PROBLEMS } = await import('../data/roadmapData');
+
+    // 1. Ensure all topics exist
+    const { data: existingTopics, error: fetchErr } = await supabase
+      .from('dsa_topics')
+      .select('id, topic_name');
+      
+    if (fetchErr) throw fetchErr;
+
+    let topicsMap: Record<string, number> = {};
+    
+    // Build map of existing topics
+    existingTopics.forEach(t => topicsMap[t.topic_name] = t.id);
+
+    // Find missing topics
+    const missingTopics = ROADMAP_TOPICS.filter(t => !topicsMap[t.topic_name]);
+    
+    if (missingTopics.length > 0) {
+      const { data: insertedTopics, error: insertErr } = await supabase
+        .from('dsa_topics')
+        .insert(missingTopics)
+        .select('id, topic_name');
+        
+      if (insertErr) throw insertErr;
+      
+      insertedTopics.forEach(t => topicsMap[t.topic_name] = t.id);
+    }
+
+    // 2. Insert problems for user
+    // First double check they really don't have problems to avoid duplicates
+    const { count } = await supabase
+      .from('dsa_problems')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+      
+    if (count && count > 0) return; // Already seeded
+
+    const problemsToInsert = ROADMAP_PROBLEMS.map((prob, index) => ({
+      user_id: userId,
+      topic_id: topicsMap[prob.topic],
+      title: prob.title,
+      difficulty: prob.difficulty,
+      is_new: prob.is_new,
+      problem_order: index + 1,
+      status: 'UNSOLVED',
+    }));
+
+    // Supabase can bulk insert max 1000 rows, we have 175, so one batch is fine
+    const { error: seedErr } = await supabase
+      .from('dsa_problems')
+      .insert(problemsToInsert);
+
+    if (seedErr) throw seedErr;
+  },
 };
