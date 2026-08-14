@@ -16,8 +16,10 @@ import {
   Target
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const [dashboard, setDashboard] = useState<DailyDashboard | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -56,7 +58,7 @@ export const DashboardPage: React.FC = () => {
               <span className="text-xs text-slate-400">• Today's Execution</span>
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
-              Ready for Today's Prep, Mohan?
+              Ready for Today's Prep, {user?.fullName?.split(' ')[0] || user?.username || 'User'}?
             </h2>
             <p className="text-xs text-slate-300 max-w-2xl mt-1 leading-relaxed">
               💡 <span className="font-semibold text-indigo-300">{dashboard.awarenessMessages[0]}</span>
