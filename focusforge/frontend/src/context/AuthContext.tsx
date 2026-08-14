@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser, useClerk, useSignIn, useSignUp } from '@clerk/clerk-react';
 import { User } from '../types';
-import { bridgeClerkToBackend, clearBackendCache } from '../lib/clerkBridge';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
@@ -30,32 +29,80 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { signUp, setActive: setSignUpActive, isLoaded: signUpLoaded } = useSignUp();
 
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [bridging, setBridging] = useState(false);
 
-  // When Clerk user is available, bridge to backend
+  // Sync Clerk user with Supabase
   useEffect(() => {
     if (!clerkLoaded) return;
 
     if (isSignedIn && clerkUser && !bridging) {
       setBridging(true);
       setIsLoading(true);
-      bridgeClerkToBackend({
-        id: clerkUser.id,
-        emailAddresses: clerkUser.emailAddresses.map(e => ({ emailAddress: e.emailAddress })),
-        fullName: clerkUser.fullName,
-        firstName: clerkUser.firstName,
-      })
-        .then(({ token: t, user: u }) => {
-          setToken(t);
-          setUser(u);
-        })
-        .catch(err => {
-          console.warn('Backend bridge failed, using Clerk user data:', err);
-          // Fall back to Clerk user data if backend is unavailable
+      localStorage.setItem('focusforge_user_id', clerkUser.id);
+
+      const syncUserToSupabase = async () => {
+        try {
+          const targetCompany = localStorage.getItem('focusforge_target_company') || 'Zoho';
+          
+          // Check if user exists in Supabase
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', clerkUser.id)
+            .single();
+
+          let userData: User;
+
+          if (!existingUser) {
+            // Create user in Supabase
+            const newUser = {
+              id: clerkUser.id,
+              email: clerkUser.emailAddresses[0]?.emailAddress || '',
+              full_name: clerkUser.fullName || clerkUser.firstName || 'User',
+              target_company: targetCompany,
+              daily_focus_goal_minutes: 240,
+              target_dsa_per_day: 3,
+            };
+
+            const { data: createdUser, error } = await supabase
+              .from('users')
+              .insert(newUser)
+              .select()
+              .single();
+
+            if (error) throw error;
+            
+            // Map Supabase snake_case to frontend camelCase
+            userData = {
+              id: createdUser.id,
+              username: createdUser.email.split('@')[0],
+              email: createdUser.email,
+              fullName: createdUser.full_name,
+              targetCompany: createdUser.target_company,
+              dailyFocusGoalMinutes: createdUser.daily_focus_goal_minutes,
+              targetDsaPerDay: createdUser.target_dsa_per_day,
+            };
+          } else {
+            // Map existing Supabase user to frontend model
+            userData = {
+              id: existingUser.id,
+              username: existingUser.email.split('@')[0],
+              email: existingUser.email,
+              fullName: existingUser.full_name,
+              targetCompany: existingUser.target_company,
+              dailyFocusGoalMinutes: existingUser.daily_focus_goal_minutes,
+              targetDsaPerDay: existingUser.target_dsa_per_day,
+            };
+          }
+
+          setUser(userData);
+          localStorage.removeItem('focusforge_target_company'); // Clear temporary storage
+        } catch (err) {
+          console.error('Error syncing user with Supabase:', err);
+          // Fallback user if DB fails temporarily
           setUser({
-            id: 1,
+            id: clerkUser.id as any,
             username: clerkUser.emailAddresses[0]?.emailAddress?.split('@')[0] || 'user',
             email: clerkUser.emailAddresses[0]?.emailAddress || '',
             fullName: clerkUser.fullName || clerkUser.firstName || 'User',
@@ -63,14 +110,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dailyFocusGoalMinutes: 240,
             targetDsaPerDay: 3,
           });
-        })
-        .finally(() => {
+        } finally {
           setIsLoading(false);
           setBridging(false);
-        });
+        }
+      };
+
+      syncUserToSupabase();
     } else if (!isSignedIn && clerkLoaded) {
+      localStorage.removeItem('focusforge_user_id');
       setUser(null);
-      setToken(null);
       setIsLoading(false);
     }
   }, [isSignedIn, clerkLoaded, clerkUser]);
@@ -85,7 +134,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (result.status === 'complete') {
         await setSignInActive({ session: result.createdSessionId });
-        // AuthContext useEffect will handle the bridge
       } else {
         throw new Error('Sign in incomplete: ' + result.status);
       }
@@ -115,13 +163,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result.status === 'complete') {
         await setSignUpActive({ session: result.createdSessionId });
       } else if (result.status === 'missing_requirements') {
-        // Email verification needed - prepare verification
         await result.prepareEmailAddressVerification({ strategy: 'email_code' });
-        // Store target company for later use
         if (data.targetCompany) {
           localStorage.setItem('focusforge_target_company', data.targetCompany);
         }
-        // Throw a special error so the UI can show the verification step
         throw { code: 'NEEDS_VERIFICATION', signUp: result };
       }
     } catch (error) {
@@ -131,9 +176,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    clearBackendCache();
+    localStorage.removeItem('focusforge_user_id');
     setUser(null);
-    setToken(null);
     await signOut();
   };
 
@@ -159,7 +203,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
-        token,
         isAuthenticated: !!isSignedIn && !!user,
         isLoading: isLoading || !clerkLoaded,
         login,

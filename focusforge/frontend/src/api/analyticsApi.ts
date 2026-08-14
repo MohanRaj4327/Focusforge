@@ -1,8 +1,9 @@
-import apiClient from './apiClient';
+import { dashboardApi } from './dashboardApi';
 
 export const analyticsApi = {
   getDashboardAnalytics: async () => {
-    const res = await apiClient.get('/analytics/dashboard');
-    return res.data;
+    // For now, reuse the dashboard summary
+    // In the future, this can query historical data
+    return await dashboardApi.getTodayDashboard();
   },
 };
