@@ -13,7 +13,8 @@ export const AptitudeZohoPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 border border-indigo-500/20 glass-panel">
+      {/* Header */}
+      <div className="p-6 rounded-2xl glass-panel">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-indigo-600/30 border border-indigo-500/40 text-indigo-300">
             <GraduationCap className="w-6 h-6" />

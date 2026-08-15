@@ -47,8 +47,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner & Awareness Ticker */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 border border-indigo-500/20 glass-panel relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl" />
+      <div className="p-6 rounded-2xl glass-panel relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -159,7 +158,7 @@ export const DashboardPage: React.FC = () => {
       {/* Middle Section: Active Focus Block & Next Task */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Active Schedule Block */}
-        <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/30 to-slate-950">
+        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping" />

@@ -61,8 +61,8 @@ export const SmartRevisionPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-indigo-950/80 border border-rose-500/20 glass-panel">
+      {/* Header */}
+      <div className="p-6 rounded-2xl glass-panel">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">

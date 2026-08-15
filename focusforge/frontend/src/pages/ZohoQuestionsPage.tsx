@@ -53,10 +53,8 @@ export const ZohoQuestionsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner with Streak */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-950/80 via-slate-900 to-indigo-950/80 border border-blue-500/20 glass-panel relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {/* Header Banner */}
+      <div className="p-6 rounded-2xl glass-panel relative overflow-hidden">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
