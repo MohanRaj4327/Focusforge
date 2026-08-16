@@ -5,9 +5,7 @@ import { AlarmClock, Plus, Calendar, AlertCircle, Trash2 } from 'lucide-react';
 
 export const DeadlinesPage: React.FC = () => {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
-  const [title, setTitle] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [category, setCategory] = useState<'ACADEMIC' | 'PLACEMENT' | 'PROJECT' | 'PERSONAL'>('PLACEMENT');
+  const [activeDayInput, setActiveDayInput] = useState<number | null>(null);
 
   const fetchDeadlines = async () => {
     try {
@@ -25,16 +23,16 @@ export const DeadlinesPage: React.FC = () => {
     fetchDeadlines();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !dueDate) return;
+  const handleInlineAdd = async (title: string, dayNum: number) => {
+    if (!title.trim()) return;
     try {
-      await deadlineApi.create({ title, dueDate: new Date(dueDate).toISOString(), category, priority: 'HIGH' });
-      setTitle('');
+      // Hardcoded to August 2026 as per current calendar offset
+      const dateStr = `2026-08-${dayNum.toString().padStart(2, '0')}T09:00:00`;
+      await deadlineApi.create({ title, dueDate: new Date(dateStr).toISOString(), category: 'PLACEMENT', priority: 'HIGH' });
       fetchDeadlines();
     } catch (err) {
-      setDeadlines(prev => [...prev, { id: Date.now(), title, dueDate, category, priority: 'HIGH', isCompleted: false }]);
-      setTitle('');
+      const dateStr = `2026-08-${dayNum.toString().padStart(2, '0')}T09:00:00`;
+      setDeadlines(prev => [...prev, { id: Date.now(), title, dueDate: dateStr, category: 'PLACEMENT', priority: 'HIGH', isCompleted: false }]);
     }
   };
 
@@ -54,27 +52,7 @@ export const DeadlinesPage: React.FC = () => {
         <p className="text-xs text-slate-400 mt-1">Keep track of upcoming exams, campus drives, and project submissions</p>
       </div>
 
-      <form onSubmit={handleAdd} className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Deadline title (e.g. Sem 5 Exams)..."
-          className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none"
-        />
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
-        />
-        <button
-          type="submit"
-          className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-1.5"
-        >
-          <Plus className="w-4 h-4" /> Attach to Calendar
-        </button>
-      </form>
+
 
       {/* Calendar View (Static Visualization) */}
       <div className="glass-panel p-4 rounded-2xl border border-slate-800">
@@ -100,13 +78,35 @@ export const DeadlinesPage: React.FC = () => {
             return (
               <div 
                 key={i} 
-                className={`min-h-[40px] md:min-h-[60px] p-1 border rounded-lg flex flex-col items-center justify-start ${
-                  isValid ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-colors' : 'border-transparent opacity-0'
+                className={`min-h-[40px] md:min-h-[60px] p-1 border rounded-lg flex flex-col items-center justify-start relative ${
+                  isValid ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-colors cursor-pointer' : 'border-transparent opacity-0'
                 } ${hasEvent ? 'border-red-500/50 bg-red-500/5' : ''}`}
+                onClick={() => {
+                  if (isValid && activeDayInput !== dayNum) setActiveDayInput(dayNum);
+                }}
               >
                 {isValid && (
                   <>
-                    <span className={`text-xs font-bold ${hasEvent ? 'text-red-400' : 'text-slate-400'}`}>{dayNum}</span>
+                    {activeDayInput === dayNum ? (
+                      <input 
+                        autoFocus
+                        type="text"
+                        placeholder="Task..."
+                        className="w-full bg-slate-800 text-[10px] text-white p-1 rounded outline-none border border-indigo-500 absolute top-1 left-1 right-1 z-10"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleInlineAdd(e.currentTarget.value, dayNum);
+                            setActiveDayInput(null);
+                          } else if (e.key === 'Escape') {
+                            setActiveDayInput(null);
+                          }
+                        }}
+                        onBlur={() => setActiveDayInput(null)}
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span className={`text-xs font-bold ${hasEvent ? 'text-red-400' : 'text-slate-400'}`}>{dayNum}</span>
+                    )}
                     {hasEvent && (
                       <div className="mt-1 w-full flex flex-col gap-0.5 px-0.5">
                         {dayDeadlines.slice(0, 2).map(d => (
