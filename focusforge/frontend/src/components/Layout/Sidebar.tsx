@@ -12,7 +12,8 @@ import {
   GraduationCap,
   Sparkles,
   LogOut,
-  Building2
+  Building2,
+  BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,6 +31,7 @@ export const Sidebar: React.FC = () => {
     { to: '/analytics', label: 'Analytics', icon: BarChart3 },
     { to: '/aptitude-zoho', label: 'Aptitude & Zoho', icon: GraduationCap },
     { to: '/zoho-questions', label: 'Zoho Previous Qs', icon: Building2, badge: 'New' },
+    { to: '/notebook', label: 'My Notebooks', icon: BookOpen },
   ];
 
   return (

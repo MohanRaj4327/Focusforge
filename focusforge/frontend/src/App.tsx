@@ -17,6 +17,7 @@ import { AptitudeZohoPage } from './pages/AptitudeZohoPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SSOCallback } from './pages/SSOCallback';
 import { ZohoQuestionsPage } from './pages/ZohoQuestionsPage';
+import { NotebookPage } from './pages/NotebookPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isSignedIn, isLoaded } = useClerkAuth();
@@ -70,6 +71,7 @@ export const App: React.FC = () => {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="aptitude-zoho" element={<AptitudeZohoPage />} />
             <Route path="zoho-questions" element={<ZohoQuestionsPage />} />
+            <Route path="notebook" element={<NotebookPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
