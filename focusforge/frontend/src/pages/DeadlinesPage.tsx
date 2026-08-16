@@ -102,17 +102,17 @@ export const DeadlinesPage: React.FC = () => {
                 key={i} 
                 className={`min-h-[40px] md:min-h-[60px] p-1 border rounded-lg flex flex-col items-center justify-start ${
                   isValid ? 'border-slate-800 bg-slate-900/50 hover:bg-slate-800 transition-colors' : 'border-transparent opacity-0'
-                } ${hasEvent ? 'border-indigo-500/50 bg-indigo-500/10' : ''}`}
+                } ${hasEvent ? 'border-red-500/50 bg-red-500/5' : ''}`}
               >
                 {isValid && (
                   <>
-                    <span className={`text-xs font-bold ${hasEvent ? 'text-indigo-400' : 'text-slate-400'}`}>{dayNum}</span>
+                    <span className={`text-xs font-bold ${hasEvent ? 'text-red-400' : 'text-slate-400'}`}>{dayNum}</span>
                     {hasEvent && (
                       <div className="mt-1 w-full flex flex-col gap-0.5 px-0.5">
                         {dayDeadlines.slice(0, 2).map(d => (
                           <div 
                             key={d.id} 
-                            className="text-[8px] md:text-[9px] bg-indigo-500/20 text-indigo-300 px-1 py-0.5 rounded truncate w-full text-left" 
+                            className="text-[8px] md:text-[9px] bg-red-500/20 text-red-300 px-1 py-0.5 rounded truncate w-full text-left" 
                             title={d.title}
                           >
                             {d.title}
