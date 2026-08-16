@@ -11,7 +11,8 @@ import {
   BookOpen, Plus, Trash2, Edit2, Check, X,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Heading1, Heading2, Heading3,
-  Code, FileCode, Minus, Palette, ChevronRight
+  Code, FileCode, Minus, Palette, ChevronRight,
+  Maximize2, Minimize2
 } from 'lucide-react';
 import { useNotebooks, Notebook } from '../hooks/useNotebooks';
 
@@ -185,6 +186,17 @@ export const NotebookPage: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState('');
+  const [fullscreen, setFullscreen] = useState(false);
+
+  // Toggle fullscreen via keyboard shortcut F11 or Escape to exit
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && fullscreen) setFullscreen(false);
+      if (e.key === 'F11') { e.preventDefault(); setFullscreen(f => !f); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [fullscreen]);
 
   // Auto-select first notebook
   useEffect(() => {
@@ -210,7 +222,11 @@ export const NotebookPage: React.FC = () => {
   const selectedNotebook = notebooks.find(nb => nb.id === selectedId) ?? null;
 
   return (
-    <div className="flex h-[calc(100vh-100px)] rounded-2xl overflow-hidden border border-slate-800">
+    <div className={`flex rounded-2xl overflow-hidden border border-slate-800 ${
+      fullscreen
+        ? 'fixed inset-0 z-50 rounded-none border-0'
+        : 'h-[calc(100vh-100px)]'
+    }`}>
       {/* ── Sidebar ── */}
       <div className="w-60 flex-shrink-0 bg-[#080e1c] border-r border-slate-800 flex flex-col">
         {/* Header */}
@@ -314,6 +330,13 @@ export const NotebookPage: React.FC = () => {
               <span className="text-[10px] text-slate-500 ml-auto">
                 Last edited: {new Date(selectedNotebook.updatedAt).toLocaleString()}
               </span>
+              <button
+                onClick={() => setFullscreen(f => !f)}
+                title={fullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen (F11)'}
+                className="ml-2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
             </div>
             <NotebookEditor
               key={selectedNotebook.id}
