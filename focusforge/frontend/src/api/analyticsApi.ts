@@ -2,32 +2,34 @@ import { dashboardApi } from './dashboardApi';
 
 export const analyticsApi = {
   getDashboardAnalytics: async () => {
-    // Fetch underlying data
     const dashData = await dashboardApi.getTodayDashboard();
     
-    // Map to the format expected by AnalyticsPage
+    // Only use REAL data from the database. Show 0 if nothing recorded yet.
     return {
-      totalFocusHours: Math.round((dashData.studyStats.monthlyFocusMinutes || 0) / 60) || 12,
+      totalFocusHours: Math.round((dashData.studyStats.weeklyFocusMinutes || 0) / 60),
       totalDsaSolved: dashData.dsaSummary.solvedProblems || 0,
-      averageAptitudeScore: 85, // Mocked for now until aptitude module is fully integrated
+      averageAptitudeScore: 0, // Will show 0 until aptitude quiz module stores scores
       studyStreakDays: dashData.studyStats.currentStreakDays || 0,
       
-      // Mocked historical data for charts
+      // Weekly chart: only Friday has real today data, others are 0
       weeklyFocusTrend: [
-        { day: 'Mon', focusMinutes: 45 },
-        { day: 'Tue', focusMinutes: 120 },
-        { day: 'Wed', focusMinutes: 90 },
-        { day: 'Thu', focusMinutes: 180 },
-        { day: 'Fri', focusMinutes: dashData.focusMinutes || 60 },
+        { day: 'Mon', focusMinutes: 0 },
+        { day: 'Tue', focusMinutes: 0 },
+        { day: 'Wed', focusMinutes: 0 },
+        { day: 'Thu', focusMinutes: 0 },
+        { day: 'Fri', focusMinutes: 0 },
         { day: 'Sat', focusMinutes: 0 },
-        { day: 'Sun', focusMinutes: 0 },
+        { day: 'Sun', focusMinutes: dashData.focusMinutes || 0 },
       ],
+      
+      // DSA topic breakdown: real data based on problems solved
+      // These will show 0 until topic-wise tracking is implemented
       dsaTopicBreakdown: [
-        { topicName: 'Arrays', percentage: 90 },
-        { topicName: 'Strings', percentage: 85 },
-        { topicName: 'Linked Lists', percentage: 70 },
-        { topicName: 'Trees', percentage: 40 },
-        { topicName: 'Dynamic Programming', percentage: 15 },
+        { topicName: 'Arrays', percentage: 0 },
+        { topicName: 'Strings', percentage: 0 },
+        { topicName: 'Linked Lists', percentage: 0 },
+        { topicName: 'Trees', percentage: 0 },
+        { topicName: 'Dynamic Programming', percentage: 0 },
       ]
     };
   },
