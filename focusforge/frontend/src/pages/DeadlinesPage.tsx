@@ -108,7 +108,20 @@ export const DeadlinesPage: React.FC = () => {
                   <>
                     <span className={`text-xs font-bold ${hasEvent ? 'text-indigo-400' : 'text-slate-400'}`}>{dayNum}</span>
                     {hasEvent && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1" title={dayDeadlines[0].title}></div>
+                      <div className="mt-1 w-full flex flex-col gap-0.5 px-0.5">
+                        {dayDeadlines.slice(0, 2).map(d => (
+                          <div 
+                            key={d.id} 
+                            className="text-[8px] md:text-[9px] bg-indigo-500/20 text-indigo-300 px-1 py-0.5 rounded truncate w-full text-left" 
+                            title={d.title}
+                          >
+                            {d.title}
+                          </div>
+                        ))}
+                        {dayDeadlines.length > 2 && (
+                          <div className="text-[8px] text-slate-500">+{dayDeadlines.length - 2} more</div>
+                        )}
+                      </div>
                     )}
                   </>
                 )}
