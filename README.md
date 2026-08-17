@@ -2,7 +2,7 @@
 
 FocusForge is a full-stack productivity and placement preparation platform. It is designed to help students track their daily schedule, manage critical deadlines, and follow a structured 6-month Data Structures & Algorithms (DSA) roadmap for technical interviews.
 
-## ✨ Features
+## Features
 * **175-Problem DSA Roadmap**: Curated technical interview preparation timeline.
 * **Spaced Repetition System**: Flags difficult problems and schedules automatic revisions.
 * **Daily Time-Blocking**: 12-hour schedule planner to structure deep work sessions.
