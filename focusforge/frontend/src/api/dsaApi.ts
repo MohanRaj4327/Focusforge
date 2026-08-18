@@ -147,6 +147,7 @@ export const dsaApi = {
   },
 
   markDifficult: async (id: number): Promise<DsaProblem> => {
+    const userId = getCurrentUserId();
     // Get current state
     const { data: current, error: getErr } = await supabase
       .from('dsa_problems')
@@ -156,9 +157,11 @@ export const dsaApi = {
       
     if (getErr) throw getErr;
     
+    const newFlaggedState = !current.is_flagged_for_revision;
+    
     const { data, error } = await supabase
       .from('dsa_problems')
-      .update({ is_flagged_for_revision: !current.is_flagged_for_revision })
+      .update({ is_flagged_for_revision: newFlaggedState })
       .eq('id', id)
       .select(`
         *,
@@ -170,6 +173,38 @@ export const dsaApi = {
       .single();
       
     if (error) throw error;
+
+    // Handle space repetition queue
+    if (newFlaggedState) {
+      // Add to revision queue
+      // First check if already exists
+      const { data: existing } = await supabase
+        .from('revision_items')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('problem_id', id)
+        .eq('is_completed', false);
+
+      if (!existing || existing.length === 0) {
+        await supabase
+          .from('revision_items')
+          .insert({
+            user_id: userId,
+            problem_id: id,
+            scheduled_date: new Date().toISOString(), // schedule for today/now so it appears in "Due Today"
+            revision_stage: 1,
+            is_completed: false
+          });
+      }
+    } else {
+      // Remove from revision queue (any uncompleted item)
+      await supabase
+        .from('revision_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('problem_id', id)
+        .eq('is_completed', false);
+    }
     
     return {
       id: data.id,
@@ -216,6 +251,38 @@ export const dsaApi = {
       .single();
       
     if (error) throw error;
+
+    // Handle space repetition queue if toggling via progress
+    if (updateData.markAsDifficult !== undefined) {
+      const userId = getCurrentUserId();
+      if (updateData.markAsDifficult) {
+        const { data: existing } = await supabase
+          .from('revision_items')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('problem_id', id)
+          .eq('is_completed', false);
+
+        if (!existing || existing.length === 0) {
+          await supabase
+            .from('revision_items')
+            .insert({
+              user_id: userId,
+              problem_id: id,
+              scheduled_date: new Date().toISOString(),
+              revision_stage: 1,
+              is_completed: false
+            });
+        }
+      } else {
+        await supabase
+          .from('revision_items')
+          .delete()
+          .eq('user_id', userId)
+          .eq('problem_id', id)
+          .eq('is_completed', false);
+      }
+    }
     
     return {
       id: data.id,
@@ -297,12 +364,52 @@ export const dsaApi = {
   },
 
   completeRevision: async (id: number): Promise<void> => {
-    const { error } = await supabase
+    // 1. Get the current revision item
+    const { data: item, error: getErr } = await supabase
+      .from('revision_items')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (getErr) throw getErr;
+
+    // 2. Mark it as completed
+    const { error: updateErr } = await supabase
       .from('revision_items')
       .update({ is_completed: true })
       .eq('id', id);
       
-    if (error) throw error;
+    if (updateErr) throw updateErr;
+
+    // 3. Schedule next pass if stage < 5
+    if (item.revision_stage < 5) {
+      const nextStage = item.revision_stage + 1;
+      let daysOffset = 1;
+      
+      if (nextStage === 2) daysOffset = 3;       // Stage 2: +3 days
+      else if (nextStage === 3) daysOffset = 7;  // Stage 3: +7 days
+      else if (nextStage === 4) daysOffset = 14; // Stage 4: +14 days
+      else if (nextStage === 5) daysOffset = 30; // Stage 5: +30 days
+
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + daysOffset);
+
+      await supabase
+        .from('revision_items')
+        .insert({
+          user_id: item.user_id,
+          problem_id: item.problem_id,
+          scheduled_date: nextDate.toISOString(),
+          revision_stage: nextStage,
+          is_completed: false
+        });
+    } else {
+      // Stage 5 completed! Unflag the problem as difficult automatically
+      await supabase
+        .from('dsa_problems')
+        .update({ is_flagged_for_revision: false })
+        .eq('id', item.problem_id);
+    }
   },
 
   initializeUserRoadmap: async (): Promise<void> => {

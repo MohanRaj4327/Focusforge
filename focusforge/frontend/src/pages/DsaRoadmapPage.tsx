@@ -18,6 +18,7 @@ import {
 import confetti from 'canvas-confetti';
 import { useStreak } from '../hooks/useStreak';
 import { useMotivation } from '../hooks/useMotivation';
+import { toast } from 'react-hot-toast';
 
 export const DsaRoadmapPage: React.FC = () => {
   const [topics, setTopics] = useState<DsaTopic[]>([]);
@@ -98,12 +99,18 @@ export const DsaRoadmapPage: React.FC = () => {
   };
 
   const handleMarkDifficult = async (id: number) => {
+    const problem = problems.find(p => p.id === id);
+    const wasFlagged = problem?.isFlaggedForRevision;
     try {
       await dsaApi.markDifficult(id);
-      alert('Problem marked as difficult! Added to Space-Repetition Revision Queue (+1, +3, +7, +14, +30 days).');
+      if (wasFlagged) {
+        toast.success('Removed from Space-Repetition Revision queue.');
+      } else {
+        toast.success('Marked as difficult! Spaced revision scheduled.');
+      }
       fetchRoadmapData();
     } catch (err) {
-      alert('Added to local revision queue!');
+      toast.error('Failed to update revision status.');
     }
   };
 
@@ -290,11 +297,15 @@ export const DsaRoadmapPage: React.FC = () => {
 
                 <button
                   onClick={() => handleMarkDifficult(prob.id)}
-                  className="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500/20 text-[11px] font-semibold flex items-center gap-1 transition-all"
-                  title="Schedule for spaced repetition revision"
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all ${
+                    prob.isFlaggedForRevision
+                      ? 'bg-rose-600 border border-rose-500 text-white hover:bg-rose-700 shadow-md shadow-rose-600/10'
+                      : 'bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500/20'
+                  }`}
+                  title={prob.isFlaggedForRevision ? "Remove from spaced repetition revision queue" : "Schedule for spaced repetition revision"}
                 >
                   <RotateCcw className="w-3 h-3" />
-                  Mark Difficult
+                  {prob.isFlaggedForRevision ? 'Difficult (Active)' : 'Mark Difficult'}
                 </button>
               </div>
             </div>
